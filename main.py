@@ -388,6 +388,382 @@ def miyagi():
     #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
     st.plotly_chart(fig11, use_container_width=True) 
 
+def yamagata():
+    #********************************着工数
+    #urlの作成
+    url = "http://api.e-stat.go.jp/rest/3.0/app/getSimpleStatsData?cdArea=06201%2C06206%2C06207%2C06208%2C06209%2C06210%2C06211%2C06213&cdTab=18&cdCat01=12%2C15&cdCat02=12%2C13&appId=&lang=J&statsDataId=0003114535&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
+    appId = '6b63c4952895e9a215c2b6f009401e5145207bc9'
+
+    url_sp = url.split("appId=")
+    url = url_sp[0] + "appId=" + appId + url_sp[1]
+
+    # DataFrameの列名を「0,1,2, … ,99」と指定する
+    df = pd.read_csv(url, names=range(50))
+
+    idx = df[df[0]=="VALUE"].index[0] #tapleで返ってくる為[0]指定
+    df_meta = pd.DataFrame(df[:idx]).set_index(0) #0列目をindexに
+    df_val = pd.DataFrame(df[idx+2:].values, columns=df.iloc[idx+1].values) # 27行目列名 28行目以降data
+
+    #空欄列の削除
+    df_meta = df_meta.dropna(axis=1, how="all")
+    df_val = df_val.dropna(axis=1, how="all")
+
+    df_val2 = df_val[['時間軸(月次)', 'value']]
+
+    df_val2['時間軸(月次)'] = pd.to_datetime(df_val2['時間軸(月次)'], format='%Y年%m月')
+    df_val2['value'] = df_val2['value'].astype('int')
+
+    s_val2 = df_val2.groupby('時間軸(月次)')['value'].sum()
+
+    #*********************可視化
+    #グラフを描くときの土台となるオブジェクト
+    fig = go.Figure()
+    #今期のグラフの追加
+
+    fig.add_trace(
+        go.Scatter(
+            x=s_val2.index,
+            y=s_val2,
+            # mode = 'lines+markers+text', #値表示
+            # text=round(df3['合計']),
+            # textposition="top center",
+            name='山形'
+            )
+    )
+
+    #レイアウト設定     
+    fig.update_layout(
+        title='着工数',
+        showlegend=True #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig, use_container_width=True) 
+
+    #**************着工数　直近1年
+    #可視化
+    #グラフを描くときの土台となるオブジェクト
+    fig2 = go.Figure()
+    #今期のグラフの追加
+
+    fig2.add_trace(
+        go.Scatter(
+            x=s_val2[-13:].index,
+            y=s_val2[-13:],
+            mode = 'lines+markers+text', #値表示
+            text=s_val2[-13:],
+            textposition="top center",
+            name='山形'
+            )
+    )
+
+    #レイアウト設定     
+    fig2.update_layout(
+        title='着工数',
+        showlegend=True #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig2, use_container_width=True) 
+
+    #*************着工数　年
+    df_val2['year'] = df_val2['時間軸(月次)'].apply(lambda x: x.year)
+    val2_year = df_val2.groupby('year')['value'].sum()
+
+    #グラフを描くときの土台となるオブジェクト
+    fig3 = go.Figure()
+    #今期のグラフの追加
+
+    fig3.add_trace(
+        go.Scatter(
+            x=val2_year.index,
+            y=val2_year,
+            # mode = 'lines+markers+text', #値表示
+            # text=round(df3['合計']),
+            # textposition="top center",
+            name='山形（年単位）'
+            )
+    )
+
+    #レイアウト設定     
+    fig3.update_layout(
+        title='着工数',
+        showlegend=True #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig3, use_container_width=True) 
+
+    #*************************************景気ウオッチャー調査
+    #urlの作成
+    url = "http://api.e-stat.go.jp/rest/3.0/app/getSimpleStatsData?cdTab=140&cdCat01=100&cdCat02=100&cdArea=00043&appId=&lang=J&statsDataId=0003348426&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
+    appId = '6b63c4952895e9a215c2b6f009401e5145207bc9'
+
+    url_sp = url.split("appId=")
+    url = url_sp[0] + "appId=" + appId + url_sp[1]
+
+    # DataFrameの列名を「0,1,2, … ,99」と指定する
+    df = pd.read_csv(url, names=range(50))
+
+    idx = df[df[0]=="VALUE"].index[0] #tapleで返ってくる為[0]指定
+    df_val = pd.DataFrame(df[idx+2:].values, columns=df.iloc[idx+1].values) # 27行目列名 28行目以降data
+
+    #空欄列の削除
+    df_val = df_val.dropna(axis=1, how="all")
+
+    df_val2 = df_val[['時間軸(月次)', 'value']]
+
+    df_val2['時間軸(月次)'] = pd.to_datetime(df_val2['時間軸(月次)'], format='%Y年%m月')
+    df_val2['value'] = df_val2['value'].astype('float')
+
+    #**************************景気ウオッチャー調査　月
+    #グラフを描くときの土台となるオブジェクト
+    fig4 = go.Figure()
+    #今期のグラフの追加
+
+    fig4.add_trace(
+        go.Scatter(
+            x=df_val2['時間軸(月次)'],
+            y=df_val2['value'],
+            # mode = 'lines+markers+text', #値表示
+            # text=round(df3['合計']),
+            # textposition="top center",
+            name='東北'
+            )
+    )
+
+    #レイアウト設定     
+    fig4.update_layout(
+        title='景気ウオッチャー',
+        showlegend=True #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig4, use_container_width=True) 
+
+    #**************************景気ウオッチャー調査　直近1年
+    #グラフを描くときの土台となるオブジェクト
+    fig5 = go.Figure()
+    #今期のグラフの追加
+
+    fig5.add_trace(
+        go.Scatter(
+            x=df_val2['時間軸(月次)'][:13],
+            y=df_val2['value'][:13],
+            mode = 'lines+markers+text', #値表示
+            text=df_val2['value'][:13],
+            textposition="top center",
+            name='東北'
+            )
+    )
+
+    #レイアウト設定     
+    fig5.update_layout(
+        title='景気ウオッチャー',
+        showlegend=True #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig5, use_container_width=True) 
+
+    #******************消費者物価指数
+    #urlの作成
+    url = "http://api.e-stat.go.jp/rest/3.0/app/getSimpleStatsData?cdCat01=0001&cdTab=1&cdArea=06A01&appId=&lang=J&statsDataId=0003427113&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
+    appId = '6b63c4952895e9a215c2b6f009401e5145207bc9'
+
+    url_sp = url.split("appId=")
+    url = url_sp[0] + "appId=" + appId + url_sp[1]
+
+    # DataFrameの列名を「0,1,2, … ,99」と指定する
+    df = pd.read_csv(url, names=range(50))
+
+    idx = df[df[0]=="VALUE"].index[0] #tapleで返ってくる為[0]指定
+    df_val = pd.DataFrame(df[idx+2:].values, columns=df.iloc[idx+1].values) # 27行目列名 28行目以降data
+
+    #空欄列の削除
+    df_val = df_val.dropna(axis=1, how="all")
+
+    df_val2 = df_val[['時間軸（年・月）', 'value']]
+
+    for idx, val in enumerate(df_val2['時間軸（年・月）']):
+        if '月' not in val:
+            df_val2.drop(index=idx, axis=0, inplace=True)
+
+    df_val2['時間軸（年・月）'] = pd.to_datetime(df_val2['時間軸（年・月）'], format='%Y年%m月')
+    df_val2['value'] = df_val2['value'].astype('float')
+
+    #***********************消費者物価指数　月
+    #グラフを描くときの土台となるオブジェクト
+    fig6 = go.Figure()
+    #今期のグラフの追加
+
+    fig6.add_trace(
+        go.Scatter(
+            x=df_val2['時間軸（年・月）'],
+            y=df_val2['value'],
+            # mode = 'lines+markers+text', #値表示
+            # text=round(df3['合計']),
+            # textposition="top center",
+            name='山形市'
+            )
+    )
+
+    #レイアウト設定     
+    fig6.update_layout(
+        title='消費者物価指数',
+        showlegend=True #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig6, use_container_width=True)  
+
+    #***********************消費者物価指数　月 直近1年
+    #グラフを描くときの土台となるオブジェクト
+    fig7 = go.Figure()
+    #今期のグラフの追加
+
+    fig7.add_trace(
+        go.Scatter(
+            x=df_val2['時間軸（年・月）'][:13],
+            y=df_val2['value'][:13],
+            mode = 'lines+markers+text', #値表示
+            text=df_val2['value'][:13],
+            textposition="top center",
+            name='山形市'
+            )
+    )
+
+    #レイアウト設定     
+    fig7.update_layout(
+        title='消費者物価指数 直近1年',
+        showlegend=True #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig7, use_container_width=True) 
+
+    #********************家計調査
+    #urlの作成
+    url = "http://api.e-stat.go.jp/rest/3.0/app/getSimpleStatsData?cdCat01=040130030%2C090410001%2C090420000&cdCat02=03&cdArea=06003&appId=&lang=J&statsDataId=0003343671&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
+    appId = '6b63c4952895e9a215c2b6f009401e5145207bc9'
+
+    url_sp = url.split("appId=")
+    url = url_sp[0] + "appId=" + appId + url_sp[1]
+
+    # DataFrameの列名を「0,1,2, … ,99」と指定する
+    df = pd.read_csv(url, names=range(50)) 
+
+    idx = df[df[0]=="VALUE"].index[0] #tapleで返ってくる為[0]指定
+    df_val = pd.DataFrame(df[idx+2:].values, columns=df.iloc[idx+1].values) # 27行目列名 28行目以降data
+
+    #空欄列の削除
+    df_val = df_val.dropna(axis=1, how="all")
+
+    df_travel2 = df_val[df_val['品目分類（2020年改定）'].isin(['9.4.1 宿泊料', '9.4.2 パック旅行費'])]
+    df_table2 = df_val[df_val['品目分類（2020年改定）']=='482 テーブル・ソファー']
+
+    df_travel2 = df_travel2[['時間軸（月次）', 'value']]
+    df_table2 = df_table2[['時間軸（月次）', 'value']]
+
+    df_travel2['時間軸（月次）'] = pd.to_datetime(df_travel2['時間軸（月次）'], format='%Y年%m月')
+    df_travel2['value'] = df_travel2['value'].astype('int')
+    df_table2['時間軸（月次）'] = pd.to_datetime(df_table2['時間軸（月次）'], format='%Y年%m月')
+    df_table2['value'] = df_table2['value'].astype('int')
+
+    s_travel = df_travel2.groupby('時間軸（月次）')['value'].sum()
+
+    #***********************家計調査　旅行
+    #グラフを描くときの土台となるオブジェクト
+    fig8 = go.Figure()
+    #今期のグラフの追加
+
+    fig8.add_trace(
+        go.Scatter(
+            x=s_travel.index,
+            y=s_travel,
+            # mode = 'lines+markers+text', #値表示
+            # text=round(df3['合計']),
+            # textposition="top center",
+            name='旅行'
+            )
+    )
+
+    #レイアウト設定     
+    fig8.update_layout(
+        title='旅行',
+        showlegend=True #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig8, use_container_width=True) 
+
+    #***********************家計調査　旅行 直近1年
+    #グラフを描くときの土台となるオブジェクト
+    fig9 = go.Figure()
+    #今期のグラフの追加
+
+    fig9.add_trace(
+        go.Scatter(
+            x=s_travel.index[-13:],
+            y=s_travel[-13:],
+            mode = 'lines+markers+text', #値表示
+            text=s_travel[-13:],
+            textposition="top center",
+            name='旅行'
+            )
+    )
+
+    #レイアウト設定     
+    fig9.update_layout(
+        title='旅行　直近1年',
+        showlegend=True #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig9, use_container_width=True) 
+
+    #*********************家具
+    #グラフを描くときの土台となるオブジェクト
+    fig10 = go.Figure()
+    #今期のグラフの追加
+
+    fig10.add_trace(
+        go.Scatter(
+            x=df_table2['時間軸（月次）'],
+            y=df_table2['value'],
+            # mode = 'lines+markers+text', #値表示
+            # text=round(df3['合計']),
+            # textposition="top center",
+            name='家具'
+            )
+    )
+
+    #レイアウト設定     
+    fig10.update_layout(
+        title='テーブル・ソファ',
+        showlegend=True #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig10, use_container_width=True) 
+
+    #*********************家具 直近1年
+    #グラフを描くときの土台となるオブジェクト
+    fig11 = go.Figure()
+    #今期のグラフの追加
+
+    fig11.add_trace(
+        go.Scatter(
+            x=df_table2['時間軸（月次）'][-13:],
+            y=df_table2['value'][-13:],
+            mode = 'lines+markers+text', #値表示
+            text=df_table2['value'][-13:],
+            textposition="top center",
+            name='家具'
+            )
+    )
+
+    #レイアウト設定     
+    fig11.update_layout(
+        title='テーブル・ソファ 直近1年',
+        showlegend=True #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig11, use_container_width=True) 
+
+
+
+
     
 
 
@@ -402,6 +778,7 @@ def main():
     apps = {
         '-': None,
         '宮城県': miyagi,
+        '山形': yamagata
        
   
     }
