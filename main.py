@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots #2軸
 
 
 st.set_page_config(page_title='merket_condition')
@@ -133,6 +134,8 @@ def miyagi():
 
     df_val2['時間軸(月次)'] = pd.to_datetime(df_val2['時間軸(月次)'], format='%Y年%m月')
     df_val2['value'] = df_val2['value'].astype('float')
+
+    df_watch = df_val2.copy()
 
     #*******可視化
     #*****景気ウオッチャー調査　月
@@ -340,54 +343,86 @@ def miyagi():
 
     st.plotly_chart(fig9, use_container_width=True) 
 
-    # #***********テーブル・ソファ
-    # #グラフを描くときの土台となるオブジェクト
-    # fig10 = go.Figure()
-    # #今期のグラフの追加
+    # ********************************************************着工数と売上比較
+    st.markdown('###### 着工数と売上の比較')
+    @st.cache_data
+    def make_data(file):
+        df_sales = pd.read_excel(file, usecols=[3, 15, 16])
+        df_sales = df_sales.sort_values('受注日')
 
-    # fig10.add_trace(
-    #     go.Scatter(
-    #         x=df_table2['時間軸（月次）'],
-    #         y=df_table2['value'],
-    #         # mode = 'lines+markers+text', #値表示
-    #         # text=round(df3['合計']),
-    #         # textposition="top center",
-    #         name='仙台市'
-    #         )
-    # )
+        df_sales['受注月'] = df_sales['受注日'].apply(lambda x: x.strftime('%Y-%m'))
+        df_sales['受注月'] = pd.to_datetime(df_sales['受注月'])
 
-    # #レイアウト設定     
-    # fig10.update_layout(
-    #     title='テーブル・ソファ',
-    #     showlegend=True #凡例表示
-    # )
-    # #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-    # st.plotly_chart(fig10, use_container_width=True) 
+        sendai_list = ['㈱家具の橋本', '(有)相馬屋家具店', '㈱東京ｲﾝﾃﾘｱ 仙台港本店', \
+                    '㈱東京ｲﾝﾃﾘｱ 仙台泉店', '㈱東京ｲﾝﾃﾘｱ 仙台南店']
+        
+        df_sendai = df_sales[df_sales['得意先名'].isin(sendai_list)] 
 
-    # #***********テーブル・ソファ 直近1年
-    # #グラフを描くときの土台となるオブジェクト
-    # fig11 = go.Figure()
-    # #今期のグラフの追加
+        s_sendai = df_sendai.groupby('受注月')['金額'].sum()
 
-    # fig11.add_trace(
-    #     go.Scatter(
-    #         x=df_table2['時間軸（月次）'][-13:],
-    #         y=df_table2['value'][-13:],
-    #         mode = 'lines+markers+text', #値表示
-    #         text=df_table2['value'][-13:],
-    #         textposition="top center",
-    #         name='仙台市'
-    #         )
-    # )
+        return s_sendai
 
-    # #レイアウト設定     
-    # fig11.update_layout(
-    #     title='テーブル・ソファ　直近1年',
-    #     showlegend=True #凡例表示
-    # )
-    # #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-    # st.plotly_chart(fig11, use_container_width=True) 
+    # ***ファイルアップロード 今期***
+    uploaded_file = st.sidebar.file_uploader('売上', type='xlsx', key='sales')
+    s_sendai = pd.Series()
+    if uploaded_file:
+        s_sendai = make_data(uploaded_file)
 
+    else:
+        st.info('売上のファイルを選択してください。')
+        st.stop()
+
+    start_month = s_sendai.index[0]
+    num_house = s_val2[start_month:] 
+
+    #**************可視化
+    fig_sales = make_subplots(specs=[[{"secondary_y": True}]]) #True にすることで2つ目の軸の表示
+
+    # 第1軸のグラフ
+    fig_sales.add_trace(
+        go.Scatter(x=s_sendai.index, y=num_house, name="着工数"),
+        secondary_y=False,
+    )
+
+    # 第2軸のグラフ
+    fig_sales.add_trace(
+        go.Scatter(x=s_sendai.index, y=s_sendai, name="売上"),
+        secondary_y=True,
+    )
+
+    fig_sales.update_yaxes(title_text="<b>primary</b> 着工数", secondary_y=False)
+    fig_sales.update_yaxes(title_text="<b>secondary</b> 売上", secondary_y=True)
+
+    st.plotly_chart(fig_sales, use_container_width=True) 
+
+    #**************************************景気ウォッチャー調査と売り上げの比較
+    st.markdown('###### 景気ウオッチャー調査と売上の比較')
+
+    df_watch_selected = df_watch[df_watch['時間軸(月次)'] >= start_month] 
+    df_watch_selected = df_watch_selected.sort_values('時間軸(月次)')
+
+    #**************可視化
+    fig_watch = make_subplots(specs=[[{"secondary_y": True}]]) #True にすることで2つ目の軸の表示
+
+    # 第1軸のグラフ
+    fig_watch.add_trace(
+        go.Scatter(x=s_sendai.index, y=df_watch_selected['value'], name="景気ウオッチャー調査"),
+        secondary_y=False,
+    )
+
+    # 第2軸のグラフ
+    fig_watch.add_trace(
+        go.Scatter(x=s_sendai.index, y=s_sendai, name="売上"),
+        secondary_y=True,
+    )
+
+    fig_watch.update_yaxes(title_text="<b>primary</b> 景気ウオッチャー調査", secondary_y=False)
+    fig_watch.update_yaxes(title_text="<b>secondary</b> 売上", secondary_y=True)
+
+    st.plotly_chart(fig_watch, use_container_width=True)
+
+
+ 
 #********************************************************************************山形
 def yamagata():
     #********************************着工数
@@ -513,6 +548,8 @@ def yamagata():
 
     df_val2['時間軸(月次)'] = pd.to_datetime(df_val2['時間軸(月次)'], format='%Y年%m月')
     df_val2['value'] = df_val2['value'].astype('float')
+
+    df_watch = df_val2.copy()
 
     #**************************景気ウオッチャー調査　月
     #グラフを描くときの土台となるオブジェクト
@@ -714,53 +751,82 @@ def yamagata():
     #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
     st.plotly_chart(fig9, use_container_width=True) 
 
-    # #*********************家具
-    # #グラフを描くときの土台となるオブジェクト
-    # fig10 = go.Figure()
-    # #今期のグラフの追加
+# ********************************************************着工数と売上比較
+    st.markdown('###### 着工数と売上の比較')
+    @st.cache_data
+    def make_data(file):
+        df_sales = pd.read_excel(file, usecols=[3, 15, 16])
+        df_sales = df_sales.sort_values('受注日')
 
-    # fig10.add_trace(
-    #     go.Scatter(
-    #         x=df_table2['時間軸（月次）'],
-    #         y=df_table2['value'],
-    #         # mode = 'lines+markers+text', #値表示
-    #         # text=round(df3['合計']),
-    #         # textposition="top center",
-    #         name='家具'
-    #         )
-    # )
+        df_sales['受注月'] = df_sales['受注日'].apply(lambda x: x.strftime('%Y-%m'))
+        df_sales['受注月'] = pd.to_datetime(df_sales['受注月'])
 
-    # #レイアウト設定     
-    # fig10.update_layout(
-    #     title='テーブル・ソファ',
-    #     showlegend=True #凡例表示
-    # )
-    # #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-    # st.plotly_chart(fig10, use_container_width=True) 
+        sendai_list = ['㈱家具のオツタカ', '㈱東京ｲﾝﾃﾘｱ 山形店']
+        
+        df_sendai = df_sales[df_sales['得意先名'].isin(sendai_list)] 
 
-    # #*********************家具 直近1年
-    # #グラフを描くときの土台となるオブジェクト
-    # fig11 = go.Figure()
-    # #今期のグラフの追加
+        s_sendai = df_sendai.groupby('受注月')['金額'].sum()
 
-    # fig11.add_trace(
-    #     go.Scatter(
-    #         x=df_table2['時間軸（月次）'][-13:],
-    #         y=df_table2['value'][-13:],
-    #         mode = 'lines+markers+text', #値表示
-    #         text=df_table2['value'][-13:],
-    #         textposition="top center",
-    #         name='家具'
-    #         )
-    # )
+        return s_sendai
 
-    # #レイアウト設定     
-    # fig11.update_layout(
-    #     title='テーブル・ソファ 直近1年',
-    #     showlegend=True #凡例表示
-    # )
-    # #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-    # st.plotly_chart(fig11, use_container_width=True) 
+    # ***ファイルアップロード 今期***
+    uploaded_file = st.sidebar.file_uploader('売上', type='xlsx', key='sales')
+    s_sendai = pd.Series()
+    if uploaded_file:
+        s_sendai = make_data(uploaded_file)
+
+    else:
+        st.info('売上のファイルを選択してください。')
+        st.stop()
+
+    start_month = s_sendai.index[0]
+    num_house = s_val2[start_month:] 
+
+    #**************可視化
+    fig_sales = make_subplots(specs=[[{"secondary_y": True}]]) #True にすることで2つ目の軸の表示
+
+    # 第1軸のグラフ
+    fig_sales.add_trace(
+        go.Scatter(x=s_sendai.index, y=num_house, name="着工数"),
+        secondary_y=False,
+    )
+
+    # 第2軸のグラフ
+    fig_sales.add_trace(
+        go.Scatter(x=s_sendai.index, y=s_sendai, name="売上"),
+        secondary_y=True,
+    )
+
+    fig_sales.update_yaxes(title_text="<b>primary</b> 着工数", secondary_y=False)
+    fig_sales.update_yaxes(title_text="<b>secondary</b> 売上", secondary_y=True)
+
+    st.plotly_chart(fig_sales, use_container_width=True) 
+
+    # #**************************************景気ウォッチャー調査と売り上げの比較
+    st.markdown('###### 景気ウオッチャー調査と売上の比較')
+
+    df_watch_selected = df_watch[df_watch['時間軸(月次)'] >= start_month] 
+    df_watch_selected = df_watch_selected.sort_values('時間軸(月次)')
+
+    #**************可視化
+    fig_watch = make_subplots(specs=[[{"secondary_y": True}]]) #True にすることで2つ目の軸の表示
+
+    # 第1軸のグラフ
+    fig_watch.add_trace(
+        go.Scatter(x=s_sendai.index, y=df_watch_selected['value'], name="景気ウオッチャー調査"),
+        secondary_y=False,
+    )
+
+    # 第2軸のグラフ
+    fig_watch.add_trace(
+        go.Scatter(x=s_sendai.index, y=s_sendai, name="売上"),
+        secondary_y=True,
+    )
+
+    fig_watch.update_yaxes(title_text="<b>primary</b> 景気ウオッチャー調査", secondary_y=False)
+    fig_watch.update_yaxes(title_text="<b>secondary</b> 売上", secondary_y=True)
+
+    st.plotly_chart(fig_watch, use_container_width=True)
 
 #********************************************************************************山形
 
@@ -1059,6 +1125,8 @@ def fukushima():
     df_val2['時間軸(月次)'] = pd.to_datetime(df_val2['時間軸(月次)'], format='%Y年%m月')
     df_val2['value'] = df_val2['value'].astype('float')
 
+    df_watch = df_val2.copy()
+
     #**************可視化
     #グラフを描くときの土台となるオブジェクト
     fig10 = go.Figure()
@@ -1262,6 +1330,200 @@ def fukushima():
     )
 
     st.plotly_chart(fig9, use_container_width=True) 
+
+     # ********************************************************着工数と売上比較
+    st.markdown('###### 着工数と売上の比較')
+    @st.cache_data
+    def make_data(file):
+        df_sales = pd.read_excel(file, usecols=[3, 15, 16])
+        df_sales = df_sales.sort_values('受注日')
+
+        df_sales['受注月'] = df_sales['受注日'].apply(lambda x: x.strftime('%Y-%m'))
+        df_sales['受注月'] = pd.to_datetime(df_sales['受注月'])
+
+        fukushima_list = ['（有）ケンポク家具', '㈱東京ｲﾝﾃﾘｱ 福島店']
+        koriyama_list = ['ラボット・プランナー株式会社', '㈱東京ｲﾝﾃﾘｱ 郡山店']
+        iwaki_list = ['株式会社丸ほん', '㈱吉田家具店', '㈱東京ｲﾝﾃﾘｱ いわき店']
+        
+        df_fukushima = df_sales[df_sales['得意先名'].isin(fukushima_list)]
+        df_koriyama = df_sales[df_sales['得意先名'].isin(koriyama_list)] 
+        df_iwaki = df_sales[df_sales['得意先名'].isin(iwaki_list)] 
+
+        s_fukushima = df_fukushima.groupby('受注月')['金額'].sum()
+        s_koriyama = df_koriyama.groupby('受注月')['金額'].sum()
+        s_iwaki = df_iwaki.groupby('受注月')['金額'].sum()
+
+        return s_fukushima, s_koriyama, s_iwaki
+
+    # ***ファイルアップロード 今期***
+    uploaded_file = st.sidebar.file_uploader('売上', type='xlsx', key='sales')
+
+    s_fukushima = pd.Series()
+    s_koriyama = pd.Series()
+    s_iwaki = pd.Series()
+
+    if uploaded_file:
+        s_fukushima, s_koriyama, s_iwaki = make_data(uploaded_file)
+
+    else:
+        st.info('売上のファイルを選択してください。')
+        st.stop()
+
+    #**************福島市　着工数/売上
+    st.markdown('###### 福島市')
+    start_month = s_fukushima.index[0]
+    house_fukushima = fukushima_g[start_month:] 
+
+    fig_fukushima1 = make_subplots(specs=[[{"secondary_y": True}]]) #True にすることで2つ目の軸の表示
+
+    # 第1軸のグラフ
+    fig_fukushima1.add_trace(
+        go.Scatter(x=s_fukushima.index, y=house_fukushima, name="着工数"),
+        secondary_y=False,
+    )
+
+    # 第2軸のグラフ
+    fig_fukushima1.add_trace(
+        go.Scatter(x=s_fukushima.index, y=s_fukushima, name="売上"),
+        secondary_y=True,
+    )
+
+    fig_fukushima1.update_yaxes(title_text="<b>primary</b> 着工数", secondary_y=False)
+    fig_fukushima1.update_yaxes(title_text="<b>secondary</b> 売上", secondary_y=True)
+
+    st.plotly_chart(fig_fukushima1, use_container_width=True) 
+
+    #**************************************景気ウォッチャー調査と売り上げの比較
+    st.markdown('###### 景気ウオッチャー調査と売上の比較')
+    st.markdown('###### 福島市')
+
+
+    df_watch_selected = df_watch[df_watch['時間軸(月次)'] >= start_month] 
+    df_watch_selected = df_watch_selected.sort_values('時間軸(月次)')
+
+    #**************可視化
+    fig_watch_f = make_subplots(specs=[[{"secondary_y": True}]]) #True にすることで2つ目の軸の表示
+
+    # 第1軸のグラフ
+    fig_watch_f.add_trace(
+        go.Scatter(x=s_fukushima.index, y=df_watch_selected['value'], name="景気ウオッチャー調査"),
+        secondary_y=False,
+    )
+
+    # 第2軸のグラフ
+    fig_watch_f.add_trace(
+        go.Scatter(x=s_fukushima.index, y=s_fukushima, name="売上"),
+        secondary_y=True,
+    )
+
+    fig_watch_f.update_yaxes(title_text="<b>primary</b> 景気ウオッチャー調査", secondary_y=False)
+    fig_watch_f.update_yaxes(title_text="<b>secondary</b> 売上", secondary_y=True)
+
+    st.plotly_chart(fig_watch_f, use_container_width=True)
+
+    #**************郡山市　着工数/売上
+    st.markdown('###### 郡山市')
+    start_month = s_koriyama.index[0]
+    house_koriyama = koriyama_g[start_month:] 
+
+    fig_koriyama1 = make_subplots(specs=[[{"secondary_y": True}]]) #True にすることで2つ目の軸の表示
+
+    # 第1軸のグラフ
+    fig_koriyama1.add_trace(
+        go.Scatter(x=s_koriyama.index, y=house_koriyama, name="着工数"),
+        secondary_y=False,
+    )
+
+    # 第2軸のグラフ
+    fig_koriyama1.add_trace(
+        go.Scatter(x=s_koriyama.index, y=s_koriyama, name="売上"),
+        secondary_y=True,
+    )
+
+    fig_koriyama1.update_yaxes(title_text="<b>primary</b> 着工数", secondary_y=False)
+    fig_koriyama1.update_yaxes(title_text="<b>secondary</b> 売上", secondary_y=True)
+
+    st.plotly_chart(fig_koriyama1, use_container_width=True) 
+
+    #**************************************景気ウォッチャー調査と売り上げの比較
+    st.markdown('###### 景気ウオッチャー調査と売上の比較')
+    st.markdown('###### 郡山市')
+
+
+    df_watch_selected = df_watch[df_watch['時間軸(月次)'] >= start_month] 
+    df_watch_selected = df_watch_selected.sort_values('時間軸(月次)')
+
+    #**************可視化
+    fig_watch_k = make_subplots(specs=[[{"secondary_y": True}]]) #True にすることで2つ目の軸の表示
+
+    # 第1軸のグラフ
+    fig_watch_k.add_trace(
+        go.Scatter(x=s_koriyama.index, y=df_watch_selected['value'], name="景気ウオッチャー調査"),
+        secondary_y=False,
+    )
+
+    # 第2軸のグラフ
+    fig_watch_k.add_trace(
+        go.Scatter(x=s_koriyama.index, y=s_koriyama, name="売上"),
+        secondary_y=True,
+    )
+
+    fig_watch_k.update_yaxes(title_text="<b>primary</b> 景気ウオッチャー調査", secondary_y=False)
+    fig_watch_k.update_yaxes(title_text="<b>secondary</b> 売上", secondary_y=True)
+
+    st.plotly_chart(fig_watch_k, use_container_width=True)
+
+    #**************いわき市　着工数/売上
+    st.markdown('###### いわき市')
+    start_month = s_iwaki.index[0]
+    house_iwaki = iwaki_g[start_month:] 
+
+    fig_iwaki1 = make_subplots(specs=[[{"secondary_y": True}]]) #True にすることで2つ目の軸の表示
+
+    # 第1軸のグラフ
+    fig_iwaki1.add_trace(
+        go.Scatter(x=s_iwaki.index, y=house_iwaki, name="着工数"),
+        secondary_y=False,
+    )
+
+    # 第2軸のグラフ
+    fig_iwaki1.add_trace(
+        go.Scatter(x=s_iwaki.index, y=s_iwaki, name="売上"),
+        secondary_y=True,
+    )
+
+    fig_iwaki1.update_yaxes(title_text="<b>primary</b> 着工数", secondary_y=False)
+    fig_iwaki1.update_yaxes(title_text="<b>secondary</b> 売上", secondary_y=True)
+
+    st.plotly_chart(fig_iwaki1, use_container_width=True) 
+
+    #**************************************景気ウォッチャー調査と売り上げの比較
+    st.markdown('###### 景気ウオッチャー調査と売上の比較')
+    st.markdown('###### いわき市')
+
+
+    df_watch_selected = df_watch[df_watch['時間軸(月次)'] >= start_month] 
+    df_watch_selected = df_watch_selected.sort_values('時間軸(月次)')
+
+    #**************可視化
+    fig_watch_i = make_subplots(specs=[[{"secondary_y": True}]]) #True にすることで2つ目の軸の表示
+
+    # 第1軸のグラフ
+    fig_watch_i.add_trace(
+        go.Scatter(x=s_iwaki.index, y=df_watch_selected['value'], name="景気ウオッチャー調査"),
+        secondary_y=False,
+    )
+
+    # 第2軸のグラフ
+    fig_watch_i.add_trace(
+        go.Scatter(x=s_iwaki.index, y=s_iwaki, name="売上"),
+        secondary_y=True,
+    )
+
+    fig_watch_i.update_yaxes(title_text="<b>primary</b> 景気ウオッチャー調査", secondary_y=False)
+    fig_watch_i.update_yaxes(title_text="<b>secondary</b> 売上", secondary_y=True)
+
+    st.plotly_chart(fig_watch_i, use_container_width=True)
 
 
 
