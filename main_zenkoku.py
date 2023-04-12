@@ -371,8 +371,6 @@ def kakei():
         s_furniture_net.rename('ネット購入', inplace=True)
 
         df_furniture_m = pd.concat([s_furniture, s_furniture_net], axis=1, join='inner')
-
-        st.write(df_furniture_m)
    
         make_line2_nonvalue(df_furniture_m, df_furniture_m.index, '食卓/応接セット/月単位')
 
