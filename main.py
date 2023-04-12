@@ -115,7 +115,7 @@ def miyagi():
     #******************景気ウォッチャー調査
     #urlの作成
     url = "http://api.e-stat.go.jp/rest/3.0/app/getSimpleStatsData?cdTab=140&cdCat01=100&cdCat02=100&cdArea=00043&appId=&lang=J&statsDataId=0003348426&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
-    appId = '6b63c4952895e9a215c2b6f009401e5145207bc9'
+    appId = st.secrets['PRIVATE']['appId'] #.streamlit\secret.tmolから参照
 
     url_sp = url.split("appId=")
     url = url_sp[0] + "appId=" + appId + url_sp[1]
@@ -189,7 +189,7 @@ def miyagi():
     #********************************消費者物価指数
     #urlの作成
     url = "http://api.e-stat.go.jp/rest/3.0/app/getSimpleStatsData?cdCat01=0001&cdTab=1&cdArea=04A01&appId=&lang=J&statsDataId=0003427113&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
-    appId = '6b63c4952895e9a215c2b6f009401e5145207bc9'
+    appId = st.secrets['PRIVATE']['appId'] #.streamlit\secret.tmolから参照
 
     url_sp = url.split("appId=")
     url = url_sp[0] + "appId=" + appId + url_sp[1]
@@ -265,7 +265,7 @@ def miyagi():
     #*********************************家計調査
     #urlの作成
     url = "http://api.e-stat.go.jp/rest/3.0/app/getSimpleStatsData?cdCat01=040130030%2C090410001%2C090420000&cdCat02=03&cdArea=04003&appId=&lang=J&statsDataId=0003343671&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
-    appId = '6b63c4952895e9a215c2b6f009401e5145207bc9'
+    appId = st.secrets['PRIVATE']['appId'] #.streamlit\secret.tmolから参照
 
     url_sp = url.split("appId=")
     url = url_sp[0] + "appId=" + appId + url_sp[1]
@@ -428,7 +428,7 @@ def yamagata():
     #********************************着工数
     #urlの作成
     url = "http://api.e-stat.go.jp/rest/3.0/app/getSimpleStatsData?cdArea=06201%2C06206%2C06207%2C06208%2C06209%2C06210%2C06211%2C06213&cdTab=18&cdCat01=12%2C15&cdCat02=12%2C13&appId=&lang=J&statsDataId=0003114535&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
-    appId = '6b63c4952895e9a215c2b6f009401e5145207bc9'
+    appId = st.secrets['PRIVATE']['appId'] #.streamlit\secret.tmolから参照
 
     url_sp = url.split("appId=")
     url = url_sp[0] + "appId=" + appId + url_sp[1]
@@ -530,7 +530,7 @@ def yamagata():
     #*************************************景気ウオッチャー調査
     #urlの作成
     url = "http://api.e-stat.go.jp/rest/3.0/app/getSimpleStatsData?cdTab=140&cdCat01=100&cdCat02=100&cdArea=00043&appId=&lang=J&statsDataId=0003348426&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
-    appId = '6b63c4952895e9a215c2b6f009401e5145207bc9'
+    appId = st.secrets['PRIVATE']['appId'] #.streamlit\secret.tmolから参照
 
     url_sp = url.split("appId=")
     url = url_sp[0] + "appId=" + appId + url_sp[1]
@@ -602,7 +602,7 @@ def yamagata():
     #******************消費者物価指数
     #urlの作成
     url = "http://api.e-stat.go.jp/rest/3.0/app/getSimpleStatsData?cdCat01=0001&cdTab=1&cdArea=06A01&appId=&lang=J&statsDataId=0003427113&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
-    appId = '6b63c4952895e9a215c2b6f009401e5145207bc9'
+    appId = st.secrets['PRIVATE']['appId'] #.streamlit\secret.tmolから参照
 
     url_sp = url.split("appId=")
     url = url_sp[0] + "appId=" + appId + url_sp[1]
@@ -676,7 +676,7 @@ def yamagata():
     #********************家計調査
     #urlの作成
     url = "http://api.e-stat.go.jp/rest/3.0/app/getSimpleStatsData?cdCat01=040130030%2C090410001%2C090420000&cdCat02=03&cdArea=06003&appId=&lang=J&statsDataId=0003343671&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
-    appId = '6b63c4952895e9a215c2b6f009401e5145207bc9'
+    appId = st.secrets['PRIVATE']['appId'] #.streamlit\secret.tmolから参照
 
     url_sp = url.split("appId=")
     url = url_sp[0] + "appId=" + appId + url_sp[1]
@@ -833,7 +833,7 @@ def yamagata():
 def fukushima():
     #urlの作成
     url = "http://api.e-stat.go.jp/rest/3.0/app/getSimpleStatsData?cdArea=07201%2C07203%2C07204%2C07207%2C07210%2C07211%2C07213%2C07214&cdTab=18&cdCat01=12%2C15&cdCat02=12%2C13&appId=&lang=J&statsDataId=0003114535&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
-    appId = '6b63c4952895e9a215c2b6f009401e5145207bc9'
+    appId = st.secrets['PRIVATE']['appId'] #.streamlit\secret.tmolから参照
 
     url_sp = url.split("appId=")
     url = url_sp[0] + "appId=" + appId + url_sp[1]
@@ -1106,7 +1106,7 @@ def fukushima():
     #***********************************************************景気ウオッチャー
     #urlの作成
     url = "http://api.e-stat.go.jp/rest/3.0/app/getSimpleStatsData?cdTab=140&cdCat01=100&cdCat02=100&cdArea=00043&appId=&lang=J&statsDataId=0003348426&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
-    appId = '6b63c4952895e9a215c2b6f009401e5145207bc9'
+    appId = st.secrets['PRIVATE']['appId'] #.streamlit\secret.tmolから参照
 
     url_sp = url.split("appId=")
     url = url_sp[0] + "appId=" + appId + url_sp[1]
@@ -1178,7 +1178,7 @@ def fukushima():
     #*************************************************************消費者物価指数
     #urlの作成
     url = "http://api.e-stat.go.jp/rest/3.0/app/getSimpleStatsData?cdCat01=0001&cdTab=1&cdArea=07A01&appId=&lang=J&statsDataId=0003427113&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
-    appId = '6b63c4952895e9a215c2b6f009401e5145207bc9'
+    appId = st.secrets['PRIVATE']['appId'] #.streamlit\secret.tmolから参照
 
     url_sp = url.split("appId=")
     url = url_sp[0] + "appId=" + appId + url_sp[1]
@@ -1253,7 +1253,7 @@ def fukushima():
         #*********************************家計調査
     #urlの作成
     url = "http://api.e-stat.go.jp/rest/3.0/app/getSimpleStatsData?cdCat01=040130030%2C090410001%2C090420000&cdCat02=03&cdArea=04003&appId=&lang=J&statsDataId=0003343671&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
-    appId = '6b63c4952895e9a215c2b6f009401e5145207bc9'
+    appId = st.secrets['PRIVATE']['appId'] #.streamlit\secret.tmolから参照
 
     url_sp = url.split("appId=")
     url = url_sp[0] + "appId=" + appId + url_sp[1]
