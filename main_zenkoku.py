@@ -356,7 +356,8 @@ def kakei():
         make_line(s_travel.index[-13:], s_travel[-13:], '旅行', '旅行/直近1年')
 
         #******時計、アクセサリー
-        s_watch = df_watch.groupby('時間軸（月次・四半期・年次）')['value'].sum()
+        df_watch2 = df_watch[df_watch['全国・地方・都市階級(平成29年改定)']==area]
+        s_watch = df_watch2.groupby('時間軸（月次・四半期・年次）')['value'].sum()
 
         make_line_nonvalue(s_watch.index, s_watch, '時計/アクセサリー', '時計/アクセサリー/月単位')
 
@@ -364,8 +365,11 @@ def kakei():
         make_line(s_watch.index[-13:], s_watch[-13:], '時計/アクセサリー', '時計/アクセサリー/直近1年')
 
         #******家具
-        s_furniture = df_furniture.groupby('時間軸（月次・四半期・年次）')['value'].sum()
-        s_furniture_net = df_furniture_net.groupby('時間軸（月次・四半期・年次）')['value'].sum()
+        df_furniture2 = df_furniture[df_furniture['全国・地方・都市階級(平成29年改定)']==area]
+        s_furniture = df_furniture2.groupby('時間軸（月次・四半期・年次）')['value'].sum()
+
+        df_furniture_net2 = df_furniture_net[df_furniture_net['全国・地方・都市階級(平成29年改定)']==area]
+        s_furniture_net = df_furniture_net2.groupby('時間軸（月次・四半期・年次）')['value'].sum()
 
         s_furniture.rename('実店舗購入', inplace=True)
         s_furniture_net.rename('ネット購入', inplace=True)
@@ -377,12 +381,6 @@ def kakei():
 
         #*******家具　直近1年
         make_line2(df_furniture_m[-13:], df_furniture_m[-13:].index, '食卓/応接セット/直近1年')
-
-        make_line(s_furniture.index[-13:], s_furniture[-13:], '食卓/応接セット', '食卓/応接セット/直近1年')
-        make_line(s_furniture_net.index[-13:], s_furniture_net[-13:], '食卓/応接セット', 'ネット購入: 食卓/応接セット/直近1年')
-
-
-
 
 
 def main():
